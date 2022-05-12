@@ -14,7 +14,7 @@ function isError(error: any): error is NodeJS.ErrnoException {
   return error instanceof Error;
 }
 
-async function getDataFromFile(filePath: string): Promise<Repo[] | AppError> {
+async function getDataFromFile(filePath: string): Promise<Repo[]> {
   try {
     const dataBuffer = await fs.readFile(path.join(__dirname, filePath), 'utf8')
     const data: Repo[] = JSON.parse(dataBuffer)
@@ -27,7 +27,7 @@ async function getDataFromFile(filePath: string): Promise<Repo[] | AppError> {
   }
 }
 
-async function getDataFromHTTPS(host: string, path: string): Promise<Repo[] | AppError> {
+async function getDataFromHTTPS(host: string, path: string): Promise<Repo[]> {
   try {
     var options = {
       host: host,
@@ -70,15 +70,25 @@ async function getDataFromHTTPS(host: string, path: string): Promise<Repo[] | Ap
   }
 }
 
+function filtereArray(repos: Repo[]): Repo[] {
+  return repos.filter((repo: Repo) => {
+    return repo.fork === false
+  })
+}
+
 repos.get('/', async (req: Request, res: Response) => {
   res.header('Cache-Control', 'no-store');
 
   try {
-    let fileData = await getDataFromFile("../../data/repos.json")
-    let apiData = await getDataFromHTTPS('api.github.com', '/users/silverorange/repos')
+    const fileData = getDataFromFile("../../data/repos.json")
+    const HTTPSData = getDataFromHTTPS('api.github.com', '/users/silverorange/repos')
+    const allData = await Promise.all([fileData, HTTPSData])
+
+    const combinedData = allData[0].concat(allData[1])
+    const formatedData = filtereArray(combinedData)
 
     res.status(200)
-    res.json([])
+    res.json([formatedData])
   } catch (err) {
     console.log(err)
     res.status(400)
