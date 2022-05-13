@@ -44,7 +44,8 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   // Sorts repository array by date created
-  // in ascending (asc) or descending (desc) order
+  // in ascending (asc) or descending (desc) order.
+  // Returns new sorted array of repositories
   private sortRepositories(repos: Repo[], order: Direction = 'asc'): Repo[] {
     return repos.sort((a, b) => {
       const aTime = new Date(a.created_at).getTime();
@@ -62,9 +63,17 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
+  // Filters repository array by a language
+  // Returns new filtered array of repositories
+  private filterRepositories(repos: Repo[], lang: Language): Repo[] {
+    return repos.filter((repo) => {
+      return repo.language === lang.name;
+    });
+  }
+
   private async getRepositories(url: RequestInfo) {
     try {
-      this.setState({
+      await this.setState({
         isLoading: true,
       });
 
@@ -125,8 +134,62 @@ export class App extends React.Component<AppProps, AppState> {
     return langsAndColours;
   }
 
-  // Updates sorting direction of repository list
-  private updateDirection = (dir: Direction) => {
+  // Gets a language selection from language state array.
+  // If the selected language is already the active languge, returns null.
+  // Else, returns selected language
+  private getNewActiveLang(i: number): null | Language {
+    if (!this.state.langs) {
+      return null;
+    }
+
+    const newLang = this.state.langs[i];
+
+    if (this.state.activeLang && newLang.name === this.state.activeLang.name) {
+      return null;
+    }
+
+    return newLang;
+  }
+
+  // Sets activeLang state to a language in the language state array or to null.
+  // Filters repository list by activeLang state.
+  // Unfilters repository list if no activeLang.
+  private setActiveLang = async (i: number) => {
+    if (!this.state.langs || !this.state.origRepos) {
+      return;
+    }
+
+    const newLang = this.getNewActiveLang(i);
+
+    if (newLang !== null) {
+      const filteredRepos = this.filterRepositories(
+        this.state.origRepos,
+        newLang
+      );
+
+      await this.setState({
+        activeLang: newLang,
+        repos: filteredRepos,
+      });
+
+      // re-sort array of repositories after filtering
+      this.setDirection(this.state.dir);
+    } else {
+      const unfilteredRepos = this.state.origRepos;
+
+      await this.setState({
+        activeLang: null,
+        repos: unfilteredRepos,
+      });
+
+      // re-sort array of repositories after removing filter
+      this.setDirection(this.state.dir);
+    }
+  };
+
+  // Sets sorting direction of repository list
+  // and sorts repository list
+  private setDirection = (dir: Direction) => {
     if (!this.state.repos) {
       return;
     }
@@ -139,28 +202,6 @@ export class App extends React.Component<AppProps, AppState> {
     });
   };
 
-  // Sets activeLang state to a selection from the langs state array by an index
-  private updateActiveLang = (i: number) => {
-    if (!this.state.langs) {
-      return;
-    }
-
-    const newLang = this.state.langs[i];
-
-    // If there is no activeLang, set activeLang to newLang
-    if (!this.state.activeLang) {
-      this.setState({ activeLang: newLang });
-      return;
-    }
-
-    // If newLang is equal to the current activeLang, set activeLang to null
-    if (newLang.name === this.state.activeLang.name) {
-      this.setState({ activeLang: null });
-    } else {
-      this.setState({ activeLang: newLang });
-    }
-  };
-
   public componentDidMount() {
     this.getRepositories('http://localhost:4000/repos');
   }
@@ -170,10 +211,10 @@ export class App extends React.Component<AppProps, AppState> {
       <div className="App container mx-auto py-3 px-2">
         <Header
           dir={this.state.dir}
-          updateListDirection={this.updateDirection}
+          updateListDirection={this.setDirection}
           langs={this.state.langs}
           activeLang={this.state.activeLang}
-          updateActiveLang={this.updateActiveLang}
+          updateActiveLang={this.setActiveLang}
         />
 
         {!this.state.isLoading && !this.state.isFailed && (
