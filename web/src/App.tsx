@@ -1,16 +1,17 @@
 import React from 'react';
 
+import { Header } from './components/Header/Header';
 import { RepositoryList } from './components/repository/RepositoryList';
+import { RepoModal } from './components/Modal/RepoModal';
 
 import { Repo } from './models/Repo';
 import { AppError } from './models/AppError';
 import { Direction } from './models/Direction';
-
-import './App.css';
-import { Header } from './components/Header/Header';
 import { Language } from './models/Language';
 
 import { hslToRgb } from './utils/HslToRgb';
+
+import './App.css';
 
 type AppProps = any;
 
@@ -25,6 +26,8 @@ interface AppState {
   dir: Direction;
   langs: Language[] | null;
   activeLang: Language | null;
+  modalOpen: boolean;
+  modalRepo: Repo | null;
 }
 
 export class App extends React.Component<AppProps, AppState> {
@@ -40,6 +43,8 @@ export class App extends React.Component<AppProps, AppState> {
       dir: 'asc',
       langs: null,
       activeLang: null,
+      modalOpen: false,
+      modalRepo: null,
     };
   }
 
@@ -75,6 +80,8 @@ export class App extends React.Component<AppProps, AppState> {
     try {
       await this.setState({
         isLoading: true,
+        isFailed: false,
+        error: null,
       });
 
       const response = await fetch(url, {
@@ -90,10 +97,12 @@ export class App extends React.Component<AppProps, AppState> {
       const languages = this.generateLanguageList(sortedData);
 
       this.setState({
-        isLoading: false,
         origRepos: data,
         repos: sortedData,
         langs: languages,
+        isLoading: false,
+        isFailed: false,
+        error: null,
       });
     } catch (err) {
       const message =
@@ -202,24 +211,64 @@ export class App extends React.Component<AppProps, AppState> {
     });
   };
 
+  // Set the open state of the repository modal to true
+  private openModal() {
+    if (!this.state.modalRepo) {
+      return;
+    }
+
+    this.setState({
+      modalOpen: true,
+    });
+  }
+
+  // Set the open state of the repository modal to false
+  private closeModal = () => {
+    this.setState({
+      modalOpen: false,
+    });
+  };
+
+  // Opens a modal with the information of a specific repository
+  private openRepoModal = async (repo: Repo) => {
+    await this.setState({
+      modalRepo: repo,
+    });
+
+    this.openModal();
+  };
+
   public componentDidMount() {
     this.getRepositories('http://localhost:4000/repos');
   }
 
   public render() {
     return (
-      <div className="App container mx-auto py-3 px-2">
-        <Header
-          dir={this.state.dir}
-          updateListDirection={this.setDirection}
-          langs={this.state.langs}
-          activeLang={this.state.activeLang}
-          updateActiveLang={this.setActiveLang}
-        />
-
-        {!this.state.isLoading && !this.state.isFailed && (
-          <RepositoryList data={this.state.repos} langs={this.state.langs} />
+      <div>
+        {this.state.modalOpen && this.state.modalRepo && (
+          <RepoModal
+            repo={this.state.modalRepo}
+            handleClose={this.closeModal}
+          />
         )}
+
+        <div className="App container mx-auto py-3 px-2">
+          <Header
+            dir={this.state.dir}
+            updateListDirection={this.setDirection}
+            langs={this.state.langs}
+            activeLang={this.state.activeLang}
+            updateActiveLang={this.setActiveLang}
+          />
+
+          {!this.state.isLoading && !this.state.isFailed && (
+            <RepositoryList
+              data={this.state.repos}
+              langs={this.state.langs}
+              handleClick={this.openRepoModal}
+            />
+          )}
+        </div>
       </div>
     );
   }
