@@ -1,4 +1,4 @@
 export interface Language {
   name: string;
-  colour: string;
+  colour?: string;
 }

@@ -150,7 +150,7 @@ export class App extends React.Component<AppProps, AppState> {
         />
 
         {!this.state.isLoading && !this.state.isFailed && (
-          <RepositoryList data={this.state.repos} />
+          <RepositoryList data={this.state.repos} langs={this.state.langs} />
         )}
       </div>
     );
