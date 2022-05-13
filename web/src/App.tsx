@@ -65,6 +65,6 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   public render() {
-    return <div className="App" />;
+    return <div className="App container mx-auto pt-3" />;
   }
 }
