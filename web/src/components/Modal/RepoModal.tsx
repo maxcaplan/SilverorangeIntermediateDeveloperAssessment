@@ -3,8 +3,10 @@ import React from 'react';
 import { Modal } from './Modal';
 import { Card } from '../Card/Card';
 import { CardHeader } from '../Card/CardHeader';
+import { CardBody } from '../Card/CardBody';
 import { Button } from '../Button/Button';
 import { XIcon } from '@primer/octicons-react';
+import { CommitCard } from '../Commit/CommitCard';
 
 import { Repo } from '../../models/Repo';
 import { AppError } from '../../models/AppError';
@@ -91,6 +93,12 @@ export class RepoModal extends React.Component<RepoModalProps, RepoModalState> {
               <XIcon verticalAlign="middle" />
             </Button>
           </CardHeader>
+
+          <CardBody className="flex flex-col gap-2">
+            {this.state.commits && (
+              <CommitCard commit={this.state.commits[0]} />
+            )}
+          </CardBody>
         </Card>
       </Modal>
     );
