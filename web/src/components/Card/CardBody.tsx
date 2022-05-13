@@ -1,3 +1,16 @@
-export function CardBody(props: any) {
-  return <div className="p-3">{props.children}</div>;
+interface CardBodyProps {
+  className?: string;
+  children?: React.ReactNode;
+  handleClick?: () => void;
+}
+
+export function CardBody(props: CardBodyProps) {
+  return (
+    <div
+      className={`p-3 ${props.className}`}
+      onClick={() => props.handleClick && props.handleClick()}
+    >
+      {props.children}
+    </div>
+  );
 }
