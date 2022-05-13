@@ -8,9 +8,6 @@ import { Direction } from './models/Direction';
 
 import './App.css';
 import { Header } from './components/Header/Header';
-import { Language } from './models/Language';
-
-import { hslToRgb } from './utils/HslToRgb';
 
 type AppProps = any;
 
@@ -20,10 +17,9 @@ interface AppState {
   isLoading: boolean;
   isFailed: boolean;
   error: AppError | null;
+  dir: Direction;
   origRepos: Repo[] | null;
   repos: Repo[] | null;
-  dir: Direction;
-  langs: Language[] | null;
 }
 
 export class App extends React.Component<AppProps, AppState> {
@@ -34,10 +30,9 @@ export class App extends React.Component<AppProps, AppState> {
       isLoading: false,
       isFailed: false,
       error: null,
+      dir: 'asc',
       origRepos: null,
       repos: null,
-      dir: 'asc',
-      langs: null,
     };
   }
 
@@ -76,13 +71,11 @@ export class App extends React.Component<AppProps, AppState> {
 
       const data: Repo[] = await response.json();
       const sortedData = this.sortRepositories(data, this.state.dir);
-      const languages = this.generateLanguageList(sortedData);
 
       this.setState({
         isLoading: false,
         origRepos: data,
         repos: sortedData,
-        langs: languages,
       });
     } catch (err) {
       const message =
@@ -98,32 +91,6 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  // Returns list of all languages present in array of repositories
-  private generateLanguageList(repos: Repo[]): Language[] {
-    const langs = repos.map((repo) => {
-      return repo.language;
-    });
-
-    const uniqueLangs = langs
-      .filter((lang, pos, self) => {
-        return self.indexOf(lang) === pos;
-      })
-      .sort();
-
-    // Unnecessarily creates mapping of colours to languages based on alphabetical order
-    const langsAndColours: Language[] = uniqueLangs.map((lang, i) => {
-      const colour = hslToRgb((i + 1) / uniqueLangs.length, 0.5, 0.5);
-
-      return {
-        name: lang,
-        colour,
-      };
-    });
-
-    return langsAndColours;
-  }
-
-  // Updates sorting direction of repository list
   private updateDirection = (dir: Direction) => {
     if (!this.state.repos) {
       return;
