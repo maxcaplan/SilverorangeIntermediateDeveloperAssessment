@@ -8,6 +8,7 @@ import { Language } from '../../models/Language';
 interface ListProps {
   data: Repo[] | null;
   langs: Language[] | null;
+  handleClick?: (repo: Repo) => void;
 }
 
 export class RepositoryList extends React.Component<ListProps> {
@@ -30,6 +31,9 @@ export class RepositoryList extends React.Component<ListProps> {
           data={repo}
           key={i}
           lang={cardLang || { name: repo.language }}
+          handleClick={() =>
+            this.props.handleClick && this.props.handleClick(repo)
+          }
         />
       );
     });
