@@ -147,6 +147,7 @@ export class App extends React.Component<AppProps, AppState> {
         <Header
           dir={this.state.dir}
           updateListDirection={this.updateDirection}
+          langs={this.state.langs}
         />
 
         {!this.state.isLoading && !this.state.isFailed && (
