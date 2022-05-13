@@ -67,8 +67,18 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     let dropDownItems;
     if (this.props.langs) {
       dropDownItems = this.props.langs.map((lang, i) => {
+        // Check if dropdown item should be active
+        const isActiveLang =
+          this.props.activeLang && lang.name === this.props.activeLang.name;
+
+        console.log(isActiveLang);
+
         return (
-          <DropdownItem handleClick={() => this.handleMenuItemClick(i)} key={i}>
+          <DropdownItem
+            className={isActiveLang ? 'active' : ''}
+            handleClick={() => this.handleMenuItemClick(i)}
+            key={i}
+          >
             <DotFillIcon
               size="small"
               verticalAlign="middle"
