@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { RepositoryList } from './components/repository/RepositoryList';
+
 import { Repo } from './models/Repo';
 import { AppError } from './models/AppError';
 
@@ -65,6 +67,12 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   public render() {
-    return <div className="App container mx-auto pt-3" />;
+    return (
+      <div className="App container mx-auto py-3">
+        {!this.state.isLoading && !this.state.isFailed && (
+          <RepositoryList data={this.state.repos} />
+        )}
+      </div>
+    );
   }
 }
