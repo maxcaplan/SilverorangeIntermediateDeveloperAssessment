@@ -5,12 +5,13 @@ import { Card } from '../Card/Card';
 import { CardHeader } from '../Card/CardHeader';
 import { CardBody } from '../Card/CardBody';
 import { Button } from '../Button/Button';
-import { XIcon } from '@primer/octicons-react';
+import { MarkdownIcon, RepoIcon, XIcon } from '@primer/octicons-react';
 import { CommitCard } from '../Commit/CommitCard';
 
 import { Repo } from '../../models/Repo';
 import { AppError } from '../../models/AppError';
 import { Commit } from '../../models/Commit';
+import { ReadMeCard } from '../ReadMe/ReadMeCard';
 
 interface RepoModalProps {
   repo: Repo;
@@ -136,13 +137,29 @@ export class RepoModal extends React.Component<RepoModalProps, RepoModalState> {
   }
 
   public render() {
+    const readMe =
+      this.state.readMe && !this.state.isReadMeLoading ? (
+        <ReadMeCard markdown={this.state.readMe} />
+      ) : (
+        <i className="text-sm text-gray-500 text-center mb-3">
+          This repository has no README...
+        </i>
+      );
+
     return (
       <Modal>
         <Card>
           <CardHeader className="flex flex-row items-center">
+            <RepoIcon
+              size={24}
+              verticalAlign="middle"
+              className="text-gray-500 mr-2"
+            />
+
             <p className="block grow text-xl font-bold">
               {this.props.repo?.full_name}
             </p>
+
             <Button
               className="flex align-center btn-light-outlined rounded-full p-1 aspect-square"
               handleClick={() => this.props.handleClose()}
@@ -152,9 +169,20 @@ export class RepoModal extends React.Component<RepoModalProps, RepoModalState> {
           </CardHeader>
 
           <CardBody className="flex flex-col gap-2">
-            {this.state.commits && (
+            {this.state.commits && !this.state.isCommitsLoading && (
               <CommitCard commit={this.state.commits[0]} />
             )}
+
+            <span className="flex items-center">
+              <MarkdownIcon
+                size={16}
+                verticalAlign="middle"
+                className="text-gray-500 mr-2"
+              />
+              <b>README.md:</b>
+            </span>
+
+            {readMe}
           </CardBody>
         </Card>
       </Modal>
