@@ -33,8 +33,17 @@ export const readMeComponents = {
     <p className="text-gray-900">{children}</p>
   ),
   code: ({ children }: ElementProps) => (
-    <code className="block bg-gray-200 text-black p-3 rounded-sm">
-      {children}
+    <code className="block bg-gray-200 text-black rounded-sm overflow-auto">
+      <span className="m-3 inline-block w-auto">{children}</span>
     </code>
+  ),
+  ul: ({ children }: ElementProps) => (
+    <ul className="list-disc text-gray-900">{children}</ul>
+  ),
+  ol: ({ children }: ElementProps) => (
+    <ol className="list-decimal text-gray-900">{children}</ol>
+  ),
+  li: ({ children }: ElementProps) => (
+    <li className="list-inside">{children}</li>
   ),
 };
