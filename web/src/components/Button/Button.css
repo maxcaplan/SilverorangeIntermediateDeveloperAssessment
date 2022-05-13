@@ -11,6 +11,14 @@
   @apply bg-gray-700 text-white;
 }
 
+.btn-light-outlined {
+  @apply border border-gray-300 text-gray-900;
+}
+
+.btn-light-outlined:hover {
+  @apply bg-gray-300;
+}
+
 .btn-blue {
   @apply bg-blue-500 text-white;
 }

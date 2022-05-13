@@ -1,13 +1,12 @@
 import './Button.css';
 
-interface DropdownProps {
-  onClick?: (e: MouseEvent) => any;
+interface ButtonProps {
   className?: string;
   children?: React.ReactNode;
   handleClick?: () => void;
 }
 
-export function Button(props: DropdownProps) {
+export function Button(props: ButtonProps) {
   return (
     <button
       onClick={() => props.handleClick && props.handleClick()}

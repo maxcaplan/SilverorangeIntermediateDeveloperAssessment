@@ -1,12 +1,13 @@
-import React from 'react';
-
-import { Repo } from '../../models/Repo';
 import { RepositoryHeader } from './RepositoryHeader';
 import { RepositoryDesc } from './RepositoryDesc';
 import { RepositoryFooter } from './RepositoryFooter';
 
+import { Repo } from '../../models/Repo';
+import { Language } from '../../models/Language';
+
 interface CardProps {
   data: Repo;
+  lang: Language;
 }
 
 export function RepositoryCard(props: CardProps) {
@@ -20,10 +21,7 @@ export function RepositoryCard(props: CardProps) {
 
         <RepositoryDesc desc={props.data.description} />
 
-        <RepositoryFooter
-          lang={props.data.language}
-          forks={props.data.forks_count}
-        />
+        <RepositoryFooter lang={props.lang} forks={props.data.forks_count} />
       </div>
     </div>
   );

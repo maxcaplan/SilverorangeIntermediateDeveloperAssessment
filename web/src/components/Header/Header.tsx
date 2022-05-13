@@ -1,52 +1,111 @@
+import { DotFillIcon } from '@primer/octicons-react';
 import React from 'react';
 
 import { Direction } from '../../models/Direction';
+import { Language } from '../../models/Language';
+import { Dropdown } from '../Dropdown/Dropdown';
+import { DropdownItem } from '../Dropdown/DropdownItem';
 import { SortButton } from './SortButton';
 
 interface HeaderProps {
   dir: Direction;
   updateListDirection: (dir: Direction) => void;
+  langs: Language[] | null;
+  activeLang?: Language | null;
+  updateActiveLang: (i: number) => void;
 }
 
-// interface HeaderState {
-//   dir: Direction;
-// }
+interface HeaderState {
+  dropdownOpen: boolean;
+}
 
-// export class Header extends React.Component<HeaderProps, HeaderState> {
-//   constructor(props: HeaderProps) {
-//     super(props);
+export class Header extends React.Component<HeaderProps, HeaderState> {
+  constructor(props: HeaderProps) {
+    super(props);
 
-//     this.state = { dir: 'asc' };
-//   }
+    this.state = {
+      dropdownOpen: false,
+    };
+  }
 
-//   private toggleDirection = () => {
-//     const newDir = this.state.dir === 'asc' ? 'desc' : 'asc';
+  private toggleDirection = () => {
+    const newDir = this.props.dir === 'asc' ? 'desc' : 'asc';
 
-//     this.setState({ dir: newDir });
-//   };
-
-//   public render() {
-//     return (
-//       <div className="flex justify-end mb-3">
-//         <SortButton
-//           dir={this.state.dir}
-//           toggleDirection={this.toggleDirection}
-//         />
-//       </div>
-//     );
-//   }
-// }
-
-export function Header(props: HeaderProps) {
-  const toggleDirection = () => {
-    const newDir = props.dir === 'asc' ? 'desc' : 'asc';
-
-    props.updateListDirection(newDir);
+    this.props.updateListDirection(newDir);
   };
 
-  return (
-    <div className="flex justify-end mb-3">
-      <SortButton dir={props.dir} toggleDirection={() => toggleDirection()} />
-    </div>
-  );
+  private toggleDropdown = () => {
+    const newState = !this.state.dropdownOpen;
+
+    this.setState({
+      dropdownOpen: newState,
+    });
+  };
+
+  private handleMenuItemClick(i: number) {
+    this.props.updateActiveLang(i);
+  }
+
+  public render() {
+    // Create Dropdown title from activeLang
+    let dropdownTitle: string | JSX.Element = 'Langs';
+    if (this.props.activeLang) {
+      dropdownTitle = (
+        <span>
+          <DotFillIcon
+            size="small"
+            verticalAlign="middle"
+            className="mr-1"
+            fill={this.props.activeLang.colour}
+          />
+          {this.props.activeLang.name}
+        </span>
+      );
+    }
+
+    // Create list of dropdown menu items
+    let dropDownItems;
+    if (this.props.langs) {
+      dropDownItems = this.props.langs.map((lang, i) => {
+        // Check if dropdown item should be active
+        const isActiveLang =
+          this.props.activeLang && lang.name === this.props.activeLang.name;
+
+        console.log(isActiveLang);
+
+        return (
+          <DropdownItem
+            className={isActiveLang ? 'active' : ''}
+            handleClick={() => this.handleMenuItemClick(i)}
+            key={i}
+          >
+            <DotFillIcon
+              size="small"
+              verticalAlign="middle"
+              className="mr-1"
+              fill={lang.colour}
+            />
+            {lang.name}
+          </DropdownItem>
+        );
+      });
+    }
+
+    return (
+      <div className="flex justify-end gap-2 mb-3">
+        <Dropdown
+          title={dropdownTitle}
+          open={this.state.dropdownOpen}
+          handleClick={() => this.toggleDropdown()}
+        >
+          {dropDownItems}
+        </Dropdown>
+
+        <SortButton
+          dir={this.props.dir}
+          toggleDirection={() => this.toggleDirection()}
+        />
+      </div>
+    );
+  }
 }

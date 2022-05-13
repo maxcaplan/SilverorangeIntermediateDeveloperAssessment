@@ -8,6 +8,9 @@ import { Direction } from './models/Direction';
 
 import './App.css';
 import { Header } from './components/Header/Header';
+import { Language } from './models/Language';
+
+import { hslToRgb } from './utils/HslToRgb';
 
 type AppProps = any;
 
@@ -17,9 +20,11 @@ interface AppState {
   isLoading: boolean;
   isFailed: boolean;
   error: AppError | null;
-  dir: Direction;
   origRepos: Repo[] | null;
   repos: Repo[] | null;
+  dir: Direction;
+  langs: Language[] | null;
+  activeLang: Language | null;
 }
 
 export class App extends React.Component<AppProps, AppState> {
@@ -30,14 +35,17 @@ export class App extends React.Component<AppProps, AppState> {
       isLoading: false,
       isFailed: false,
       error: null,
-      dir: 'asc',
       origRepos: null,
       repos: null,
+      dir: 'asc',
+      langs: null,
+      activeLang: null,
     };
   }
 
   // Sorts repository array by date created
-  // in ascending (asc) or descending (desc) order
+  // in ascending (asc) or descending (desc) order.
+  // Returns new sorted array of repositories
   private sortRepositories(repos: Repo[], order: Direction = 'asc'): Repo[] {
     return repos.sort((a, b) => {
       const aTime = new Date(a.created_at).getTime();
@@ -55,9 +63,17 @@ export class App extends React.Component<AppProps, AppState> {
     });
   }
 
+  // Filters repository array by a language
+  // Returns new filtered array of repositories
+  private filterRepositories(repos: Repo[], lang: Language): Repo[] {
+    return repos.filter((repo) => {
+      return repo.language === lang.name;
+    });
+  }
+
   private async getRepositories(url: RequestInfo) {
     try {
-      this.setState({
+      await this.setState({
         isLoading: true,
       });
 
@@ -71,11 +87,13 @@ export class App extends React.Component<AppProps, AppState> {
 
       const data: Repo[] = await response.json();
       const sortedData = this.sortRepositories(data, this.state.dir);
+      const languages = this.generateLanguageList(sortedData);
 
       this.setState({
         isLoading: false,
         origRepos: data,
         repos: sortedData,
+        langs: languages,
       });
     } catch (err) {
       const message =
@@ -91,7 +109,87 @@ export class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  private updateDirection = (dir: Direction) => {
+  // Returns list of all languages present in array of repositories
+  private generateLanguageList(repos: Repo[]): Language[] {
+    const langs = repos.map((repo) => {
+      return repo.language;
+    });
+
+    const uniqueLangs = langs
+      .filter((lang, pos, self) => {
+        return self.indexOf(lang) === pos;
+      })
+      .sort();
+
+    // Unnecessarily creates mapping of colours to languages based on alphabetical order
+    const langsAndColours: Language[] = uniqueLangs.map((lang, i) => {
+      const colour = hslToRgb((i + 1) / uniqueLangs.length, 0.5, 0.5);
+
+      return {
+        name: lang,
+        colour,
+      };
+    });
+
+    return langsAndColours;
+  }
+
+  // Gets a language selection from language state array.
+  // If the selected language is already the active languge, returns null.
+  // Else, returns selected language
+  private getNewActiveLang(i: number): null | Language {
+    if (!this.state.langs) {
+      return null;
+    }
+
+    const newLang = this.state.langs[i];
+
+    if (this.state.activeLang && newLang.name === this.state.activeLang.name) {
+      return null;
+    }
+
+    return newLang;
+  }
+
+  // Sets activeLang state to a language in the language state array or to null.
+  // Filters repository list by activeLang state.
+  // Unfilters repository list if no activeLang.
+  private setActiveLang = async (i: number) => {
+    if (!this.state.langs || !this.state.origRepos) {
+      return;
+    }
+
+    const newLang = this.getNewActiveLang(i);
+
+    if (newLang !== null) {
+      const filteredRepos = this.filterRepositories(
+        this.state.origRepos,
+        newLang
+      );
+
+      await this.setState({
+        activeLang: newLang,
+        repos: filteredRepos,
+      });
+
+      // re-sort array of repositories after filtering
+      this.setDirection(this.state.dir);
+    } else {
+      const unfilteredRepos = this.state.origRepos;
+
+      await this.setState({
+        activeLang: null,
+        repos: unfilteredRepos,
+      });
+
+      // re-sort array of repositories after removing filter
+      this.setDirection(this.state.dir);
+    }
+  };
+
+  // Sets sorting direction of repository list
+  // and sorts repository list
+  private setDirection = (dir: Direction) => {
     if (!this.state.repos) {
       return;
     }
@@ -113,11 +211,14 @@ export class App extends React.Component<AppProps, AppState> {
       <div className="App container mx-auto py-3 px-2">
         <Header
           dir={this.state.dir}
-          updateListDirection={this.updateDirection}
+          updateListDirection={this.setDirection}
+          langs={this.state.langs}
+          activeLang={this.state.activeLang}
+          updateActiveLang={this.setActiveLang}
         />
 
         {!this.state.isLoading && !this.state.isFailed && (
-          <RepositoryList data={this.state.repos} />
+          <RepositoryList data={this.state.repos} langs={this.state.langs} />
         )}
       </div>
     );
