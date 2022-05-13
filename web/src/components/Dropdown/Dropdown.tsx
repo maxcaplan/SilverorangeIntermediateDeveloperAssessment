@@ -5,6 +5,7 @@ import './Dropdown.css';
 
 interface DropdownProps {
   open: boolean;
+  title?: string | React.ReactNode;
   handleClick?: () => void;
   buttonClassName?: string;
   wrapperClassName?: string;
@@ -21,7 +22,7 @@ export function Dropdown(props: DropdownProps) {
           handleClick={() => props.handleClick && props.handleClick()}
           className={`btn-light-outlined ${props.buttonClassName}`}
         >
-          Langs
+          {props.title}
           <ChevronDownIcon
             size="small"
             verticalAlign="middle"
