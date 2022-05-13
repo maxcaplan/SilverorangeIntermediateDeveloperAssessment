@@ -19,7 +19,7 @@ export function SortButton(props: SortButtonProps) {
 
   return (
     <Button
-      className="btn-outlined"
+      className="btn-light-outlined"
       handleClick={() => props.toggleDirection()}
     >
       {sortIcon}
