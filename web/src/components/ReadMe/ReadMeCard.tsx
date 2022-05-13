@@ -11,7 +11,7 @@ export function ReadMeCard({ markdown }: { markdown: string }) {
         <ReactMarkdown
           children={markdown}
           components={readMeComponents}
-          className="grid grid-flow-row gap-2"
+          className="grid grid-flow-row auto-cols-fr gap-2 whitespace-normal"
         />
       </CardBody>
     </Card>
