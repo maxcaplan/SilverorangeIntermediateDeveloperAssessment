@@ -18,10 +18,15 @@ interface RepoModalProps {
 }
 
 interface RepoModalState {
-  isLoading: boolean;
-  isFailed: boolean;
-  error: AppError | null;
+  isCommitsLoading: boolean;
+  isCommitsFailed: boolean;
+  commitsError: AppError | null;
   commits: Commit[] | null;
+
+  isReadMeLoading: boolean;
+  isReadMeFailed: boolean;
+  readMeError: AppError | null;
+  readMe: string | null;
 }
 
 export class RepoModal extends React.Component<RepoModalProps, RepoModalState> {
@@ -29,19 +34,24 @@ export class RepoModal extends React.Component<RepoModalProps, RepoModalState> {
     super(props);
 
     this.state = {
-      isLoading: false,
-      isFailed: false,
-      error: null,
+      isCommitsLoading: false,
+      isCommitsFailed: false,
+      commitsError: null,
       commits: null,
+
+      isReadMeLoading: false,
+      isReadMeFailed: false,
+      readMeError: null,
+      readMe: null,
     };
   }
 
   private async getCommits(url: RequestInfo) {
     try {
       await this.setState({
-        isLoading: true,
-        isFailed: false,
-        error: null,
+        isCommitsLoading: true,
+        isCommitsFailed: false,
+        commitsError: null,
       });
 
       const response = await fetch(url, {
@@ -56,18 +66,62 @@ export class RepoModal extends React.Component<RepoModalProps, RepoModalState> {
 
       this.setState({
         commits: data,
-        isLoading: false,
-        isFailed: false,
-        error: null,
+        isCommitsLoading: false,
+        isCommitsFailed: false,
+        commitsError: null,
       });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to fetch commit data';
 
       this.setState({
-        isFailed: true,
-        isLoading: false,
-        error: new AppError(message, 500),
+        isCommitsFailed: true,
+        isCommitsLoading: false,
+        commitsError: new AppError(message, 500),
+      });
+
+      throw err;
+    }
+  }
+
+  private async getReadMe(url: RequestInfo) {
+    try {
+      await this.setState({
+        isCommitsLoading: true,
+        isCommitsFailed: false,
+        commitsError: null,
+      });
+
+      const response = await fetch(url, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        this.setState({
+          isReadMeFailed: true,
+          isReadMeLoading: false,
+          readMeError: new AppError(response.statusText, response.status),
+        });
+
+        throw response.statusText;
+      }
+
+      const data = await response.text();
+
+      this.setState({
+        isReadMeLoading: false,
+        isReadMeFailed: false,
+        readMeError: null,
+        readMe: data,
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to fetch ReadMe data';
+
+      this.setState({
+        isReadMeFailed: true,
+        isReadMeLoading: false,
+        readMeError: new AppError(message, 500),
       });
 
       throw err;
@@ -76,6 +130,9 @@ export class RepoModal extends React.Component<RepoModalProps, RepoModalState> {
 
   public componentDidMount() {
     this.getCommits(this.props.repo.url + '/commits');
+    this.getReadMe(
+      `https://raw.githubusercontent.com/${this.props.repo.full_name}/master/README.md`
+    );
   }
 
   public render() {
