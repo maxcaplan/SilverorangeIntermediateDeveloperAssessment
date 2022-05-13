@@ -11,7 +11,8 @@ interface HeaderProps {
   dir: Direction;
   updateListDirection: (dir: Direction) => void;
   langs: Language[] | null;
-  activeLang?: Language;
+  activeLang?: Language | null;
+  updateActiveLang: (i: number) => void;
 }
 
 interface HeaderState {
@@ -41,13 +42,33 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     });
   };
 
+  private handleMenuItemClick(i: number) {
+    this.props.updateActiveLang(i);
+  }
+
   public render() {
+    // Create Dropdown title from activeLang
+    let dropdownTitle: string | JSX.Element = 'Langs';
+    if (this.props.activeLang) {
+      dropdownTitle = (
+        <span>
+          <DotFillIcon
+            size="small"
+            verticalAlign="middle"
+            className="mr-1"
+            fill={this.props.activeLang.colour}
+          />
+          {this.props.activeLang.name}
+        </span>
+      );
+    }
+
     // Create list of dropdown menu items
     let dropDownItems;
     if (this.props.langs) {
       dropDownItems = this.props.langs.map((lang, i) => {
         return (
-          <DropdownItem key={i}>
+          <DropdownItem handleClick={() => this.handleMenuItemClick(i)} key={i}>
             <DotFillIcon
               size="small"
               verticalAlign="middle"
@@ -63,6 +84,7 @@ export class Header extends React.Component<HeaderProps, HeaderState> {
     return (
       <div className="flex justify-end gap-2 mb-3">
         <Dropdown
+          title={dropdownTitle}
           open={this.state.dropdownOpen}
           handleClick={() => this.toggleDropdown()}
         >

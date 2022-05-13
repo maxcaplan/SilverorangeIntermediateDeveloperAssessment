@@ -24,6 +24,7 @@ interface AppState {
   repos: Repo[] | null;
   dir: Direction;
   langs: Language[] | null;
+  activeLang: Language | null;
 }
 
 export class App extends React.Component<AppProps, AppState> {
@@ -38,6 +39,7 @@ export class App extends React.Component<AppProps, AppState> {
       repos: null,
       dir: 'asc',
       langs: null,
+      activeLang: null,
     };
   }
 
@@ -137,6 +139,28 @@ export class App extends React.Component<AppProps, AppState> {
     });
   };
 
+  // Sets activeLang state to a selection from the langs state array by an index
+  private updateActiveLang = (i: number) => {
+    if (!this.state.langs) {
+      return;
+    }
+
+    const newLang = this.state.langs[i];
+
+    // If there is no activeLang, set activeLang to newLang
+    if (!this.state.activeLang) {
+      this.setState({ activeLang: newLang });
+      return;
+    }
+
+    // If newLang is equal to the current activeLang, set activeLang to null
+    if (newLang.name === this.state.activeLang.name) {
+      this.setState({ activeLang: null });
+    } else {
+      this.setState({ activeLang: newLang });
+    }
+  };
+
   public componentDidMount() {
     this.getRepositories('http://localhost:4000/repos');
   }
@@ -148,6 +172,8 @@ export class App extends React.Component<AppProps, AppState> {
           dir={this.state.dir}
           updateListDirection={this.updateDirection}
           langs={this.state.langs}
+          activeLang={this.state.activeLang}
+          updateActiveLang={this.updateActiveLang}
         />
 
         {!this.state.isLoading && !this.state.isFailed && (
