@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Header } from './components/Header/Header';
 import { RepositoryList } from './components/repository/RepositoryList';
+import { WithRepositoryListStatus } from './components/repository/WithRepositoryListStatus';
 import { RepoModal } from './components/Modal/RepoModal';
 
 import { Repo } from './models/Repo';
@@ -243,6 +244,8 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   public render() {
+    const ListWithStatus = WithRepositoryListStatus(RepositoryList); // eslint-disable-line @typescript-eslint/naming-convention
+
     return (
       <div>
         {this.state.modalOpen && this.state.modalRepo && (
@@ -261,13 +264,13 @@ export class App extends React.Component<AppProps, AppState> {
             updateActiveLang={this.setActiveLang}
           />
 
-          {!this.state.isLoading && !this.state.isFailed && (
-            <RepositoryList
-              data={this.state.repos}
-              langs={this.state.langs}
-              handleClick={this.openRepoModal}
-            />
-          )}
+          <ListWithStatus
+            isLoading={this.state.isLoading}
+            isFailed={this.state.isFailed}
+            data={this.state.repos}
+            langs={this.state.langs}
+            handleClick={this.openRepoModal}
+          />
         </div>
       </div>
     );

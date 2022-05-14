@@ -2,42 +2,32 @@ import React from 'react';
 
 import { RepositoryCard } from './RepositoryCard';
 
-import { Repo } from '../../models/Repo';
-import { Language } from '../../models/Language';
+import { RepositoryListProps } from '../../models/RepositoryList';
+import { StatusCard } from '../Status/StatusCard';
 
-interface ListProps {
-  data: Repo[] | null;
-  langs: Language[] | null;
-  handleClick?: (repo: Repo) => void;
-}
+export function RepositoryList(props: RepositoryListProps) {
+  if (!props.data) {
+    return <StatusCard type="alert">There are no repositories...</StatusCard>;
+  }
 
-export class RepositoryList extends React.Component<ListProps> {
-  public render() {
-    if (!this.props.data || this.props.data.length === 0) {
-      return <p>No repositories</p>;
+  const listItems = props.data.map((repo, i) => {
+    let cardLang;
+
+    if (props.langs) {
+      cardLang = props.langs.find((lang) => {
+        return lang.name === repo.language;
+      });
     }
 
-    const listItems = this.props.data.map((repo, i) => {
-      let cardLang;
+    return (
+      <RepositoryCard
+        data={repo}
+        key={i}
+        lang={cardLang || { name: repo.language }}
+        handleClick={() => props.handleClick && props.handleClick(repo)}
+      />
+    );
+  });
 
-      if (this.props.langs) {
-        cardLang = this.props.langs.find((lang) => {
-          return lang.name === repo.language;
-        });
-      }
-
-      return (
-        <RepositoryCard
-          data={repo}
-          key={i}
-          lang={cardLang || { name: repo.language }}
-          handleClick={() =>
-            this.props.handleClick && this.props.handleClick(repo)
-          }
-        />
-      );
-    });
-
-    return <div className="w-full flex flex-col gap-3">{listItems}</div>;
-  }
+  return <div className="w-full flex flex-col gap-3">{listItems}</div>;
 }
